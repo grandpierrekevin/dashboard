@@ -1,0 +1,13 @@
+import React from "react";
+import { AlertCircle, AlertTriangle, Info } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { toast } from "sonner";
+import { useSonarQube } from "@/hooks/useSonarQube";
+import { SonarQubeIssue } from "@/types/sonarqube";
+import { formatDistanceToNow } from "date-fns";
+import { fr } from "date-fns/locale";
+import { Link } from "@tanstack/react-router"; 

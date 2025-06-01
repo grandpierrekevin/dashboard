@@ -1,0 +1,6 @@
+{
+  "entryPoints": ["src/hooks", "src/context", "src/types"],
+  "out": "docs",
+  "entryPointStrategy": "expand",
+  "exclude": ["src/__tests__/**/*"]
+} 
