@@ -21,12 +21,14 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { DashboardData, Integration, KPI } from "@/types/dashboard";
+import { DashboardData, KPI } from "@/types/dashboard";
 import { useKPIs } from "@/hooks/useKPIs";
 import { RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { KPICard } from "@/components/dashboard/KPICard";
 import { AlertCard } from "@/components/dashboard/AlertCard";
+import { mockNotifications } from "@/mocks/notifications";
+import type { Notification } from "@/types/notifications";
 
 // Lazy loading des widgets
 const GithubWidget = lazy(() => import("@/components/dashboard/GithubWidget").then(module => ({ default: module.GithubWidget })));
@@ -39,17 +41,36 @@ export const Route = createFileRoute("/dashboard")({
   component: DashboardPage,
 });
 
-function DashboardHome() {
-  return (
-    <div className="container mx-auto p-6">
-      <h1 className="text-3xl font-bold">Bienvenue sur le Dashboard</h1>
-      <p>Sélectionnez un outil dans le menu à gauche.</p>
-    </div>
-  );
-}
+type DashboardDataWithAlerts = { alerts?: any[] };
+
+// Ajout d'alertes mockées techniques cohérentes avec le reste de l'appli
+const technicalMockAlerts = [
+  {
+    title: "Jenkins : Build échoué",
+    message: "Le build #124 a échoué sur la branche develop.",
+    severity: "critical",
+    timestamp: "2024-06-28T09:15:00Z"
+  },
+  {
+    title: "SonarQube : Vulnérabilités détectées",
+    message: "5 vulnérabilités critiques détectées sur backend-api.",
+    severity: "warning",
+    timestamp: "2024-06-28T08:00:00Z"
+  },
+  {
+    title: "Jira : Nouveau ticket",
+    message: "Un ticket 'Bug' a été créé suite à un échec Jenkins.",
+    severity: "info",
+    timestamp: "2024-06-28T10:00:00Z"
+  }
+];
 
 function DashboardPage() {
-  const { loading, data, fetchData } = useDashboardData();
+  const { loading, data, fetchData } = useDashboardData() as {
+    loading: boolean;
+    data: DashboardDataWithAlerts;
+    fetchData: () => void;
+  };
   const { kpis, updateKPIValues } = useKPIs();
   const { integrations } = useIntegrations();
   const activeIntegrations = integrations.filter(i => i.active);
@@ -99,32 +120,32 @@ function DashboardPage() {
       case "github":
         return (
           <Suspense fallback={<LoadingFallback />}>
-            <GithubWidget />
+            <GithubWidget widgetId={widgetId} />
           </Suspense>
         );
       case "gitlab":
         return (
           <Suspense fallback={<LoadingFallback />}>
-            <GitlabWidget />
+            <GitlabWidget widgetId={widgetId} />
           </Suspense>
         );
       case "jenkins":
         return (
           <Suspense fallback={<LoadingFallback />}>
-            <JenkinsWidget />
+            <JenkinsWidget widgetId={widgetId} />
           </Suspense>
         );
       case "jira":
         return (
           <Suspense fallback={<LoadingFallback />}>
-            <JiraWidget />
+            <JiraWidget widgetId={widgetId} />
           </Suspense>
         );
       case "sonar":
       case "sonarqube":
         return (
           <Suspense fallback={<LoadingFallback />}>
-            <SonarWidget />
+            <SonarWidget widgetId={widgetId} />
           </Suspense>
         );
       default:
@@ -132,11 +153,28 @@ function DashboardPage() {
     }
   };
 
+  // Utilisation typée
+  const alerts = [
+    ...((Array.isArray(data?.alerts) ? data.alerts : [])
+      .map((a: any) => typeof a === 'string' ? { title: "Alerte", message: a, severity: "info", timestamp: undefined } : a)),
+    ...technicalMockAlerts
+  ];
+
+  // Si aucune alerte, fallback sur les notifications mockées
+  const finalAlerts = alerts.length > 0
+    ? alerts
+    : (mockNotifications as Notification[]).map(n => ({
+        title: "Notification",
+        message: n.message,
+        severity: "info",
+        timestamp: n.date
+      }));
+      
   return (
     <div className="container mx-auto p-6">
       <div className="mb-8 flex items-center justify-between">
         <h1 className="text-3xl font-bold">Dashboard</h1>
-        <Button onClick={fetchData} disabled={loading}>
+        <Button onClick={() => fetchData()} disabled={loading}>
           <RefreshCw className={cn("mr-2 h-4 w-4", loading && "animate-spin")} />
           Rafraîchir
         </Button>
@@ -147,8 +185,14 @@ function DashboardPage() {
           kpi.show && <KPICard key={index} kpi={kpi} />
         ))}
       </div>
-
-      <AlertCard alerts={data.alerts} className="mb-8" />
+      
+      <div className="space-y-4">
+          <h2 className="text-xl font-semibold">Alertes récentes</h2>
+          <AlertCard
+            alerts={finalAlerts}
+            className="mb-8"
+          />
+      </div>
 
       <Tabs defaultValue="all" className="mb-8">
         <TabsList>

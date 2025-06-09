@@ -2,10 +2,105 @@ import React from 'react';
 import { useCorrelation } from '@/context/CorrelationContext';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowRight, CheckCircle2, AlertCircle, X, Search, Calendar } from 'lucide-react';
+import { ArrowRight, CheckCircle2, AlertCircle, X, Search, Calendar, Bug, ShieldCheck, GitBranch, FileText, CalendarDays, User, Hash, AlertTriangle } from 'lucide-react';
 import { useDashboardFilters } from '@/context/DashboardFilterContext';
 import { TOOL_LABELS, ToolType } from '@/constants/tools';
 import { STATUS_LABELS, StatusType } from '@/constants/status';
+
+// Fonction utilitaire pour obtenir une icône selon le champ
+function getFieldIcon(key: string) {
+  switch (key) {
+    case 'project': return <ShieldCheck className="inline w-4 h-4 mr-1 text-blue-500" />;
+    case 'jobName': return <GitBranch className="inline w-4 h-4 mr-1 text-purple-500" />;
+    case 'ticketId': return <FileText className="inline w-4 h-4 mr-1 text-yellow-500" />;
+    case 'vulnerabilities': return <AlertTriangle className="inline w-4 h-4 mr-1 text-red-500" />;
+    case 'buildNumber': return <Hash className="inline w-4 h-4 mr-1 text-gray-500" />;
+    case 'status': return <CheckCircle2 className="inline w-4 h-4 mr-1 text-green-500" />;
+    case 'date':
+    case 'timestamp': return <CalendarDays className="inline w-4 h-4 mr-1 text-gray-400" />;
+    case 'author': return <User className="inline w-4 h-4 mr-1 text-indigo-500" />;
+    default: return null;
+  }
+}
+
+// Fonction utilitaire pour obtenir une icône d'outil
+function getToolIcon(tool: string) {
+  switch (tool) {
+    case 'SONARQUBE': return <ShieldCheck className="inline w-5 h-5 text-blue-600 mr-1" />;
+    case 'JENKINS': return <GitBranch className="inline w-5 h-5 text-purple-600 mr-1" />;
+    case 'JIRA': return <FileText className="inline w-5 h-5 text-yellow-600 mr-1" />;
+    default: return null;
+  }
+}
+
+// Fonction utilitaire pour harmoniser et aligner les champs source/cible dans un tableau
+function renderCorrelationTable(source: Record<string, any>, target: Record<string, any>, sourceTool: string, targetTool: string) {
+  const fieldDefs: { key: string, label: string, showForSource?: boolean, showForTarget?: boolean }[] = [
+    { key: 'project', label: 'Projet', showForSource: sourceTool === 'SONARQUBE' },
+    { key: 'jobName', label: 'Job', showForSource: sourceTool === 'JENKINS', showForTarget: targetTool === 'JENKINS' },
+    { key: 'ticketId', label: 'Ticket', showForTarget: targetTool === 'JIRA' },
+    { key: 'vulnerabilities', label: 'Vulnérabilités', showForSource: sourceTool === 'SONARQUBE' },
+    { key: 'buildNumber', label: 'Numéro de build', showForSource: sourceTool === 'JENKINS', showForTarget: targetTool === 'JENKINS' },
+    { key: 'status', label: 'Statut', showForSource: true, showForTarget: true },
+    { key: 'date', label: 'Date', showForSource: true, showForTarget: true },
+    { key: 'timestamp', label: 'Horodatage', showForSource: true, showForTarget: true },
+    { key: 'author', label: 'Auteur', showForSource: true, showForTarget: true },
+    { key: 'description', label: 'Description', showForSource: true, showForTarget: true },
+  ];
+
+  // Préparer les valeurs à afficher (formatage date, fallback "—")
+  function formatValue(key: string, value: any) {
+    if (!value) return '—';
+    if (key === 'timestamp' || key === 'date') {
+      try {
+        return new Date(value).toLocaleString();
+      } catch {
+        return value;
+      }
+    }
+    return value;
+  }
+
+  // Construire la liste des champs à afficher (uniquement ceux présents dans source ou target)
+  const allKeys = Array.from(new Set([
+    ...fieldDefs.filter(f => f.showForSource || f.showForTarget).map(f => f.key),
+    ...Object.keys(source),
+    ...Object.keys(target)
+  ]));
+
+  // Générer le tableau aligné
+  return (
+    <table className="w-full text-xs border-separate border-spacing-y-0.5">
+      <thead>
+        <tr>
+          <th className="text-left font-semibold text-gray-700 dark:text-gray-200 w-1/3 pb-2">{getToolIcon(sourceTool)}{TOOL_LABELS[sourceTool as ToolType]}</th>
+          <th className="text-center font-semibold text-gray-400 w-1/3 pb-2">Champ</th>
+          <th className="text-left font-semibold text-gray-700 dark:text-gray-200 w-1/3 pb-2">{getToolIcon(targetTool)}{TOOL_LABELS[targetTool as ToolType]}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {allKeys.map((key, idx) => {
+          const def = fieldDefs.find(f => f.key === key);
+          const label = def ? def.label : key.charAt(0).toUpperCase() + key.slice(1);
+          const sourceVal = formatValue(key, source[key]);
+          const targetVal = formatValue(key, target[key]);
+          if (sourceVal === '—' && targetVal === '—') return null;
+          // Couleur de fond alternée
+          const rowBg = idx % 2 === 0 ? 'bg-gray-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-900';
+          // Couleur de statut
+          const statusColor = (val: any) => val === 'success' || val === 'succès' ? 'text-green-600 font-semibold' : val === 'failed' || val === 'échec' ? 'text-red-600 font-semibold' : '';
+          return (
+            <tr key={key} className={rowBg + ' align-top'}>
+              <td className={"pr-2 py-1 text-gray-900 dark:text-gray-100 rounded-l " + (key === 'status' ? statusColor(sourceVal) : '')}>{sourceVal}</td>
+              <td className="px-2 py-1 text-center text-gray-500 dark:text-gray-400 whitespace-nowrap">{getFieldIcon(key)}{label}</td>
+              <td className={"pl-2 py-1 text-gray-900 dark:text-gray-100 rounded-r " + (key === 'status' ? statusColor(targetVal) : '')}>{targetVal}</td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  );
+}
 
 export function CorrelationTimeline() {
   const { results, rules } = useCorrelation();
@@ -39,18 +134,19 @@ export function CorrelationTimeline() {
 
   // Filtres dynamiques
   const filteredResults = results.filter((item) => {
+    const rule = rules.find(r => r.id === item.ruleId);
     // Filtres locaux (search, tool, status, date, etc.)
     const matchesLocal =
-      (!search || item.title.toLowerCase().includes(search.toLowerCase())) &&
-      (!filterTool || item.tool === filterTool) &&
+      (!search || rule?.name.toLowerCase().includes(search.toLowerCase())) &&
+      (!filterTool || rule?.source.tool === filterTool || rule?.target.tool === filterTool) &&
       (!filterStatus || item.status === filterStatus) &&
       (!startDate || new Date(item.timestamp) >= new Date(startDate)) &&
       (!endDate || new Date(item.timestamp) <= new Date(endDate));
     // Filtres globaux (cross-filtering)
     const matchesGlobal =
-      (!filters.status || item.status === filters.status || (filters.status === 'active' && item.status === 'active') || (filters.status === 'failure' && item.status === 'failure') || (filters.status === 'resolved' && item.status === 'resolved') || (filters.status === 'critical-bug' && item.status === 'critical-bug')) &&
-      (!filters.tool || item.tool === filters.tool) &&
-      (!filters.rule || (item.rule && item.rule === filters.rule));
+      (!filters.status || item.status === filters.status) &&
+      (!filters.tool || rule?.source.tool === filters.tool || rule?.target.tool === filters.tool) &&
+      (!filters.rule || (rule?.name === filters.rule));
     return matchesLocal && matchesGlobal;
   });
 
@@ -70,7 +166,6 @@ export function CorrelationTimeline() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold mb-2">Timeline des Corrélations</h2>
       {/* Barre de recherche et filtres */}
       <div className="flex flex-wrap gap-3 items-center mb-4">
         <div className="relative">
@@ -128,42 +223,33 @@ export function CorrelationTimeline() {
       )}
       {filteredResults.map(result => {
         const rule = rules.find(r => r.id === result.ruleId);
+        if (!rule) return null;
         return (
-          <Card key={result.id} className="p-4 flex items-center gap-4">
-            {/* Source */}
-            <div
-              className="flex flex-col items-center min-w-[120px] cursor-pointer hover:underline"
-              onClick={() => handleEventClick('source', result.id)}
-              title="Voir le détail de l'événement source"
-            >
-              <span className="font-semibold text-sm text-gray-700 dark:text-gray-200">{rule ? TOOL_LABELS[rule.source.tool] : ''}</span>
-              <Badge variant="outline">{rule?.source.metric}</Badge>
-              <span className="text-xs text-gray-500 mt-1">{JSON.stringify(result.sourceData)}</span>
+          <Card key={result.id} className="p-4 flex flex-col gap-2">
+            <div className="flex flex-row items-center gap-4">
+              <div className="flex flex-col items-center min-w-[120px]">
+                <span className="font-semibold text-sm text-gray-700 dark:text-gray-200">{TOOL_LABELS[rule.source.tool as ToolType]}</span>
+                <Badge variant="outline">{rule.source.metric}</Badge>
+              </div>
+              <ArrowRight className="w-6 h-6 text-gray-400" />
+              <div className="flex flex-col items-center min-w-[120px]">
+                <span className="font-semibold text-sm text-gray-700 dark:text-gray-200">{TOOL_LABELS[rule.target.tool as ToolType]}</span>
+                <Badge variant="outline">{rule.target.metric}</Badge>
+              </div>
+              <div className="flex flex-col items-center min-w-[80px]">
+                {result.status === 'success' ? (
+                  <CheckCircle2 className="w-6 h-6 text-green-500" />
+                ) : (
+                  <AlertCircle className="w-6 h-6 text-red-500" />
+                )}
+                <span className="text-xs mt-1">{STATUS_LABELS[result.status as StatusType] || result.status}</span>
+              </div>
+              <div className="ml-auto text-xs text-gray-400">
+                {new Date(result.timestamp).toLocaleString()}
+              </div>
             </div>
-            {/* Flèche */}
-            <ArrowRight className="w-6 h-6 text-gray-400" />
-            {/* Cible */}
-            <div
-              className="flex flex-col items-center min-w-[120px] cursor-pointer hover:underline"
-              onClick={() => handleEventClick('target', result.id)}
-              title="Voir le détail de l'événement cible"
-            >
-              <span className="font-semibold text-sm text-gray-700 dark:text-gray-200">{rule ? TOOL_LABELS[rule.target.tool] : ''}</span>
-              <Badge variant="outline">{rule?.target.metric}</Badge>
-              <span className="text-xs text-gray-500 mt-1">{JSON.stringify(result.targetData)}</span>
-            </div>
-            {/* Statut */}
-            <div className="flex flex-col items-center min-w-[80px]">
-              {result.status === 'success' ? (
-                <CheckCircle2 className="w-6 h-6 text-green-500" />
-              ) : (
-                <AlertCircle className="w-6 h-6 text-red-500" />
-              )}
-              <span className="text-xs mt-1">{STATUS_LABELS[result.status as StatusType] || result.status}</span>
-            </div>
-            {/* Timestamp */}
-            <div className="ml-auto text-xs text-gray-400">
-              {new Date(result.timestamp).toLocaleString()}
+            <div className="mt-2">
+              {renderCorrelationTable(result.sourceData, result.targetData, rule.source.tool, rule.target.tool)}
             </div>
           </Card>
         );

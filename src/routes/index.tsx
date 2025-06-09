@@ -13,6 +13,7 @@ import type { Integration } from "@/types/integrations";
 import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { WeatherWidget } from "@/components/dashboard/WeatherWidget";
+import { mockNotifications } from "@/mocks/notifications";
 
 // Mapping pour icônes/couleurs dynamiques par nom d'outil
 const iconByName = {
@@ -54,11 +55,26 @@ function HomePage() {
   const { loading, data, fetchData } = useDashboardData();
   const activeIntegrations = integrations.filter(i => i.active);
 
+  // Génère des alertes mockées formatées si data.alerts est vide
+  const mockAlerts = (mockNotifications || []).map(n => ({
+    title: "Notification",
+    message: n.message,
+    severity: "info",
+    timestamp: n.date
+  }));
+  // Mapping robuste : chaque alerte (string ou objet) devient un objet cohérent
+  const alerts = (data?.alerts && data.alerts.length > 0 ? data.alerts : mockAlerts)
+    .map((a: any) =>
+      typeof a === 'string'
+        ? { title: 'Alerte', message: a, severity: 'info', timestamp: undefined }
+        : a
+    );
+
   const getHealthStatus = () => {
-    if (!data) return "loading";
-    const criticalAlerts = data.alerts.filter(a => a.severity === "critical");
+    if (!alerts) return "loading";
+    const criticalAlerts = alerts.filter(a => a.severity === "critical");
     if (criticalAlerts.length > 0) return "critical";
-    const warningAlerts = data.alerts.filter(a => a.severity === "warning");
+    const warningAlerts = alerts.filter(a => a.severity === "warning");
     if (warningAlerts.length > 0) return "warning";
     return "healthy";
   };
@@ -94,48 +110,74 @@ function HomePage() {
           status: healthStatus,
           message: healthStatusConfig[healthStatus].message,
           lastUpdate: new Date().toISOString(),
-          activity: data?.alerts?.slice(0,2).map(alert => ({
+          activity: alerts.slice(0,2).map(alert => ({
             type: alert.severity === 'critical' ? 'alert' : 'update',
             message: alert.title,
             timestamp: alert.timestamp || new Date().toISOString(),
-          })) || [],
+          })),
         }}
         isLoading={loading}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {activeIntegrations.map((integration) => (
-          <Link
-            key={integration.name}
-            to={`/dashboard/${integration.name.toLowerCase()}`}
-            className="block"
-          >
-            <Card className={cn(
-              "p-6 transition-all hover:shadow-lg",
-              colorByName[integration.name]
-            )}>
-              <div className="flex items-center space-x-4">
-                <div className="text-white">
-                  {iconByName[integration.name]}
+        {activeIntegrations.map((integration) => {
+          let url = '';
+          switch (integration.name) {
+            case 'GitHub':
+              url = 'https://github.com/';
+              break;
+            case 'GitLab':
+              url = 'https://gitlab.com/';
+              break;
+            case 'Jenkins':
+              url = 'https://www.jenkins.io/';
+              break;
+            case 'Jira':
+              url = 'https://www.atlassian.com/software/jira';
+              break;
+            case 'SonarQube':
+              url = 'https://www.sonarqube.org/';
+              break;
+            default:
+              url = '#';
+          }
+          return (
+            <a
+              key={integration.name}
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block"
+            >
+              <Card className={cn(
+                "p-6 transition-all hover:shadow-lg",
+                colorByName[integration.name]
+              )}>
+                <div className="flex items-center space-x-4">
+                  <div className="text-white">
+                    {iconByName[integration.name]}
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">{integration.name}</h3>
+                    <p className="text-white/80">{integration.url}</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-white">{integration.name}</h3>
-                  <p className="text-white/80">{integration.url}</p>
-                </div>
-              </div>
-            </Card>
-          </Link>
-        ))}
+              </Card>
+            </a>
+          );
+        })}
       </div>
 
-      {data?.alerts && data.alerts.length > 0 && (
+      {/* Alertes récentes */}
+      {alerts && alerts.length > 0 && (
         <div className="space-y-4">
           <h2 className="text-xl font-semibold">Alertes récentes</h2>
-          {data.alerts.map((alert, index) => (
+          {alerts.map((alert, index) => (
             <Alert key={index} variant={alert.severity === "critical" ? "destructive" : "default"}>
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>{alert.title}</AlertTitle>
               <AlertDescription>{alert.message}</AlertDescription>
+              <div className="text-xs text-gray-400 mt-1">{alert.timestamp ? new Date(alert.timestamp).toLocaleString() : ''}</div>
             </Alert>
           ))}
         </div>

@@ -74,9 +74,9 @@ function AdminIntegrations() {
     }
   }, [lastTested]);
 
-  const addIntegration = () => {
-    setIntegrationAdded(true);
-  };
+  // const addIntegration = () => {
+  //   setIntegrationAdded(true);
+  // };
 
   useEffect(() => {
     if (integrationAdded) {
@@ -89,9 +89,9 @@ function AdminIntegrations() {
     <div className="max-w-2xl mx-auto py-12 space-y-7">
       <div className="flex justify-between items-center mb-3">
         <h2 className="text-2xl font-bold tracking-tight">Intégrations configurées</h2>
-        <Button variant="outline" onClick={addIntegration}>
+        {/* <Button variant="outline" onClick={addIntegration}>
           <PlusCircle className="mr-2" /> Ajouter
-        </Button>
+        </Button> */}
       </div>
       <Card className="shadow-xl border border-gray-200 dark:border-gray-700 rounded-2xl bg-white/90 dark:bg-gray-900/90">
         <CardContent className="p-6 space-y-7">

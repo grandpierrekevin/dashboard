@@ -6,21 +6,34 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Trash2, Edit2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import type { CorrelationRule } from '@/types/correlation';
+import { CorrelationRuleForm } from './CorrelationRuleForm';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 export function CorrelationRules() {
   const { rules, stats, toggleRule, deleteRule } = useCorrelation();
+  const [isFormOpen, setIsFormOpen] = React.useState(false);
+  const [selectedRule, setSelectedRule] = React.useState<CorrelationRule | undefined>();
+
+  const handleNewRule = () => {
+    setSelectedRule(undefined);
+    setIsFormOpen(true);
+  };
+
+  const handleEditRule = (rule: CorrelationRule) => {
+    setSelectedRule(rule);
+    setIsFormOpen(true);
+  };
 
   return (
     <div className="space-y-6">
       {/* En-tête avec statistiques */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Règles de Corrélation</h2>
           <p className="text-gray-500 dark:text-gray-400">
             {stats.activeRules} règles actives sur {stats.totalRules} au total
           </p>
         </div>
-        <Button>
+        <Button onClick={handleNewRule}>
           <Plus className="w-4 h-4 mr-2" />
           Nouvelle Règle
         </Button>
@@ -60,7 +73,7 @@ export function CorrelationRules() {
                   onCheckedChange={() => toggleRule(rule.id)}
                   aria-label={`Activer/désactiver la règle ${rule.name}`}
                 />
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" onClick={() => handleEditRule(rule)}>
                   <Edit2 className="w-4 h-4" />
                 </Button>
                 <Button 
@@ -82,13 +95,30 @@ export function CorrelationRules() {
             <p className="text-gray-500 dark:text-gray-400 mb-4">
               Créez votre première règle pour commencer à corréler les données entre vos outils.
             </p>
-            <Button>
+            <Button onClick={handleNewRule}>
               <Plus className="w-4 h-4 mr-2" />
               Créer une Règle
             </Button>
           </Card>
         )}
       </div>
+
+      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedRule ? 'Modifier la Règle' : 'Créer une nouvelle règle'}
+            </DialogTitle>
+          </DialogHeader>
+          <CorrelationRuleForm
+            rule={selectedRule}
+            onClose={() => {
+              setIsFormOpen(false);
+              setSelectedRule(undefined);
+            }}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 } 
