@@ -249,7 +249,7 @@ export default function Dashboard() {
       </DndContext>
 
       <Dialog open={!!settingsWidgetId} onOpenChange={() => setSettingsWidgetId(null)}>
-        <DialogContent>
+        <DialogContent className='bg-gray-900'>
           <DialogHeader>
             <DialogTitle>Configurer le widget</DialogTitle>
             <DialogDescription>

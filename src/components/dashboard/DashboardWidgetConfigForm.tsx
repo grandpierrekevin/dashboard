@@ -68,8 +68,8 @@ export function DashboardWidgetConfigForm({ initialConfig, availableMetrics, onS
         </div>
       </div>
       <div className="flex gap-2 justify-end">
-        <Button type="button" variant="outline" onClick={onCancel}>Annuler</Button>
-        <Button type="submit">Enregistrer</Button>
+        <Button type="button" className='bg-red-500' onClick={onCancel}>Annuler</Button>
+        <Button type="submit" className='bg-green-600'>Enregistrer</Button>
       </div>
     </form>
   );
