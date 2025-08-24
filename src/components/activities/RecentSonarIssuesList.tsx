@@ -5,114 +5,87 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
+import { Bug, Shield, AlertCircle } from "lucide-react";
 
 interface RecentSonarIssuesListProps {
   issues: SonarIssue[];
+  onViewDetails: (issue: SonarIssue) => void;
 }
 
-export function RecentSonarIssuesList({ issues }: RecentSonarIssuesListProps) {
+export function RecentSonarIssuesList({ issues, onViewDetails }: RecentSonarIssuesListProps) {
   const handleResolve = (issue: SonarIssue) => {
     toast(`Issue résolue\nIssue #${issue.id} - ${issue.message}`);
   };
 
-  const getTypeColor = (type: SonarIssue["type"]) => {
+  const getTypeIcon = (type: SonarIssue['type']) => {
     switch (type) {
-      case "bug":
-        return "bg-red-500";
-      case "vulnerability":
-        return "bg-orange-500";
-      case "code_smell":
-        return "bg-yellow-500";
+      case 'bug':
+        return <Bug className="h-4 w-4 text-red-500" />;
+      case 'vulnerability':
+        return <Shield className="h-4 w-4 text-yellow-500" />;
+      case 'code_smell':
+        return <AlertCircle className="h-4 w-4 text-blue-500" />;
       default:
-        return "bg-gray-500";
+        return null;
     }
   };
 
-  const getSeverityColor = (severity: SonarIssue["severity"]) => {
+  const getSeverityColor = (severity: SonarIssue['severity']) => {
     switch (severity) {
-      case "blocker":
-        return "bg-red-700";
-      case "critical":
-        return "bg-red-500";
-      case "major":
-        return "bg-orange-500";
-      case "minor":
-        return "bg-yellow-500";
+      case 'blocker':
+        return 'text-red-500';
+      case 'critical':
+        return 'text-orange-500';
+      case 'major':
+        return 'text-yellow-500';
+      case 'minor':
+        return 'text-blue-500';
       default:
-        return "bg-gray-500";
+        return 'text-gray-500';
     }
   };
 
   return (
-    <Card>
+    <Card className="bg-gray-900">
       <CardHeader>
-        <CardTitle>Issues récentes</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <Bug className="h-5 w-5" />
+          Issues Récentes
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           {issues.map((issue) => (
             <div
               key={issue.id}
-              className="flex items-center justify-between p-4 border rounded-lg"
+              className="flex items-start justify-between p-4 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-700 transition-colors"
+              onClick={() => onViewDetails(issue)}
             >
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <span className="font-medium">{issue.message}</span>
-                  <Badge
-                    className={getTypeColor(issue.type)}
-                    variant="secondary"
-                  >
-                    {issue.type}
-                  </Badge>
-                  <Badge
-                    className={getSeverityColor(issue.severity)}
-                    variant="secondary"
-                  >
+                  {getTypeIcon(issue.type)}
+                  <span className={`font-medium ${getSeverityColor(issue.severity)}`}>
                     {issue.severity}
-                  </Badge>
-                  <Badge
-                    className={issue.status === "open" ? "bg-red-500" : "bg-green-500"}
-                    variant="secondary"
-                  >
-                    {issue.status}
-                  </Badge>
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  <span>Fichier: {issue.component}</span>
-                  <span className="mx-2">•</span>
-                  <span>Ligne: {issue.line}</span>
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  <span>
-                    {issue.date && !isNaN(new Date(issue.date).getTime())
-                      ? formatDistanceToNow(new Date(issue.date), {
-                          addSuffix: true,
-                          locale: fr,
-                        })
-                      : "Date inconnue"}
+                  </span>
+                  <span className="text-sm text-gray-400">
+                    {issue.status === 'open' ? 'Ouvert' : 'Résolu'}
                   </span>
                 </div>
+                <p className="text-sm text-gray-400">{issue.message}</p>
+                <div className="text-sm text-gray-500">
+                  {issue.component}:{issue.line}
+                </div>
               </div>
-              <div className="flex gap-2">
-                {issue.status === "open" && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleResolve(issue)}
-                  >
-                    Résoudre
-                  </Button>
-                )}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleResolve(issue)}
-                >
-                  Voir détails
-                </Button>
+              <div className="text-sm text-gray-400">
+                {new Date(issue.date).toLocaleDateString()}
               </div>
             </div>
           ))}
+          {issues.length === 0 && (
+            <div className="text-center text-gray-400 py-4">
+              Aucune issue trouvée
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

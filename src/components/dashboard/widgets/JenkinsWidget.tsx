@@ -1,198 +1,250 @@
 import React from 'react';
 import { DashboardWidget } from '../DashboardWidget';
 import { Badge } from '@/components/ui/badge';
-import { PlayCircle, Clock, AlertCircle } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { Button } from "@/components/ui/button";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
+import { PlayCircle, AlertCircle, Clock, CheckCircle2 } from 'lucide-react';
+import { useWidgetData } from '@/hooks/useWidgetData';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
-interface JenkinsStats {
-  builds: {
-    total: number;
-    success: number;
-    failure: number;
+interface JenkinsWidgetData {
+  name: string;
+  value: number;
+  details: {
+    totalBuilds: number;
+    successRate: number;
+    averageDuration: number;
+    lastBuild: {
+      id: number;
+      number: number;
+      status: 'success' | 'failed' | 'running' | 'pending';
+      startedAt: string;
+      finishedAt: string;
+      duration: number;
+      stages: {
+        name: string;
+        status: 'success' | 'failed' | 'running' | 'pending';
+        duration: number;
+        logs: string;
+        error?: string;
+      }[];
+    };
   };
-  averageDuration: number;
-  lastBuild: {
-    status: 'success' | 'failure' | 'running';
-    duration: number;
-    timestamp: string;
-  };
-  history: Array<{
+  activity: {
     date: string;
-    success: number;
-    failure: number;
-  }>;
+    builds: number;
+  }[];
 }
 
-export function JenkinsWidget({ id, onRemove, onSettings }: { id: string; onRemove: (id: string) => void; onSettings: (id: string) => void }) {
-  const [stats, setStats] = React.useState<JenkinsStats>({
-    builds: {
-      total: 45,
-      success: 38,
-      failure: 7,
-    },
-    averageDuration: 325,
-    lastBuild: {
-      status: 'success',
-      duration: 280,
-      timestamp: new Date().toISOString(),
-    },
-    history: [
-      { date: 'Lun', success: 5, failure: 1 },
-      { date: 'Mar', success: 7, failure: 0 },
-      { date: 'Mer', success: 6, failure: 2 },
-      { date: 'Jeu', success: 8, failure: 1 },
-      { date: 'Ven', success: 5, failure: 2 },
-      { date: 'Sam', success: 4, failure: 1 },
-      { date: 'Dim', success: 3, failure: 0 },
-    ],
-  });
+export function JenkinsWidget({ id, title, onRemove, onSettings }: { id: string; title: string; onRemove: (id: string) => void; onSettings: (id: string) => void }) {
+  const { data, loading, error } = useWidgetData({ type: 'jenkins' });
+  const jobs = Array.isArray(data) ? (data as JenkinsWidgetData[]) : [];
 
-  // Ajout des filtres
-  const [statusFilter, setStatusFilter] = React.useState<string>("");
-  const [branchFilter, setBranchFilter] = React.useState<string>("");
-  // Branches mock pour la démo
-  const branches = ["main", "develop", "feature/auth", "hotfix/security"];
+  // Agrégation des stats globales
+  const totalBuilds = jobs.reduce((sum, job) => sum + (job.details?.totalBuilds || 0), 0);
+  const avgSuccessRate = jobs.length ? Math.round(jobs.reduce((sum, job) => sum + (job.details?.successRate || 0), 0) / jobs.length) : 0;
+  const avgDuration = jobs.length ? Math.round(jobs.reduce((sum, job) => sum + (job.details?.averageDuration || 0), 0) / jobs.length) : 0;
+  // Dernier build global (le plus récent)
+  const lastBuild = jobs.reduce((latest, job) => {
+    if (!latest || (job.details?.lastBuild && job.details.lastBuild.startedAt > latest.startedAt)) return job.details?.lastBuild;
+    return latest;
+  }, null as JenkinsWidgetData['details']['lastBuild'] | null);
 
-  // Filtrage de l'historique selon les filtres
-  const filteredHistory = stats.history.filter(h => {
-    // Ici, on ne filtre que par statut pour la démo (succès/échec)
-    if (statusFilter === "success" && h.failure > 0) return false;
-    if (statusFilter === "failure" && h.success > 0) return false;
-    // Pas de filtre branche dans le mock, mais on laisse la logique
-    if (branchFilter && branchFilter !== "main") return false;
-    return true;
-  });
+  const [chartType, setChartType] = React.useState<'line' | 'bar'>('line');
 
-  const handleResetFilters = () => {
-    setStatusFilter("");
-    setBranchFilter("");
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
+  // Statut global basé sur le dernier build
+  const getStatus = () => {
+    switch (lastBuild?.status) {
       case 'success':
-        return 'bg-green-100 text-green-800';
-      case 'failure':
-        return 'bg-red-100 text-red-800';
+        return { label: 'Succès', color: 'bg-green-100 text-green-800' };
+      case 'failed':
+        return { label: 'Échec', color: 'bg-red-100 text-red-800' };
       case 'running':
-        return 'bg-blue-100 text-blue-800';
+        return { label: 'En cours', color: 'bg-blue-100 text-blue-800' };
       default:
-        return 'bg-gray-100 text-gray-800';
+        return { label: 'En attente', color: 'bg-yellow-100 text-yellow-800' };
     }
   };
+  const status = getStatus();
+
+  // Formater la durée en minutes
+  const formatDuration = (duration: number) => {
+    const minutes = Math.floor(duration / 60);
+    return `${minutes} min`;
+  };
+
+  if (error) {
+    return (
+      <DashboardWidget
+        id={id}
+        title={title}
+        tool="Jenkins"
+        onRemove={onRemove}
+        onSettings={onSettings}
+      >
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            {error.message || "Une erreur est survenue lors du chargement des données Jenkins"}
+          </AlertDescription>
+        </Alert>
+      </DashboardWidget>
+    );
+  }
+
+  if (loading) {
+    return (
+      <DashboardWidget
+        id={id}
+        title={title}
+        tool="Jenkins"
+        onRemove={onRemove}
+        onSettings={onSettings}
+      >
+        <div className="animate-pulse space-y-4 p-4">
+          <div className="h-4 bg-muted rounded w-1/4" />
+          <div className="space-y-2">
+            <div className="h-4 bg-muted rounded" />
+            <div className="h-4 bg-muted rounded w-5/6" />
+          </div>
+          <div className="grid grid-cols-4 gap-4 mt-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-16 bg-muted rounded" />
+            ))}
+          </div>
+        </div>
+      </DashboardWidget>
+    );
+  }
+
+  if (!jobs.length) {
+    return (
+      <DashboardWidget
+        id={id}
+        title={title}
+        tool="Jenkins"
+        onRemove={onRemove}
+        onSettings={onSettings}
+      >
+        <div className="flex items-center justify-center h-32">
+          <span className="text-gray-500">Aucune donnée disponible</span>
+        </div>
+      </DashboardWidget>
+    );
+  }
+
+  // Agrégation de l'activité sur 7 jours pour le graphique
+  const days = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+  const activity = days.map(day => ({
+    date: day,
+    builds: jobs.reduce((sum, job) => {
+      const found = job.activity?.find(a => a.date === day);
+      return sum + (found?.builds || 0);
+    }, 0)
+  }));
 
   return (
-    <DashboardWidget
-      id={id}
-      title="Statistiques Jenkins"
-      tool="Jenkins"
-      onRemove={onRemove}
-      onSettings={onSettings}
-    >
-      <div className="space-y-4">
-        {/* Barre de filtres */}
-        <div className="flex flex-wrap gap-4 items-end mb-2">
-          <div>
-            <Label htmlFor="status">Statut</Label>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[140px]">
-                <SelectValue placeholder="Tous" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">Tous</SelectItem>
-                <SelectItem value="success">Succès</SelectItem>
-                <SelectItem value="failure">Échec</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label htmlFor="branch">Branche</Label>
-            <Select value={branchFilter} onValueChange={setBranchFilter}>
-              <SelectTrigger className="w-[140px]">
-                <SelectValue placeholder="Toutes" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">Toutes</SelectItem>
-                {branches.map(b => (
-                  <SelectItem key={b} value={b}>{b}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleResetFilters}
-            disabled={!statusFilter && !branchFilter}
-          >
-            Réinitialiser les filtres
-          </Button>
+    <div className="dashboard-widget">
+      <DashboardWidget
+        id={id}
+        title={title}
+        tool="Jenkins"
+        onRemove={onRemove}
+        onSettings={onSettings}
+      >
+        <div className="flex items-center gap-2 mb-2">
+          <span className="font-semibold">Jenkins</span>
+          <Badge className={status.color}>{status.label}</Badge>
         </div>
-        <div className="grid grid-cols-3 gap-4">
-          <div className="flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-            <PlayCircle className="w-6 h-6 mb-2 text-blue-500" />
-            <span className="text-2xl font-bold">{stats.builds.total}</span>
-            <span className="text-sm text-gray-500">Builds totaux</span>
+        <div className="flex flex-col gap-6 p-2 md:p-4">
+          {/* Infos secondaires */}
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 text-xs text-gray-400">
+            <span>Dernier build : #{lastBuild?.number ?? '–'}</span>
+            <span>Le {lastBuild?.startedAt ? new Date(lastBuild.startedAt).toLocaleString() : '–'}</span>
           </div>
-          <div className="flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-            <Clock className="w-6 h-6 mb-2 text-purple-500" />
-            <span className="text-2xl font-bold">{stats.averageDuration}s</span>
-            <span className="text-sm text-gray-500">Durée moyenne</span>
+          {/* Chiffres clés */}
+          <div className="grid grid-cols-4 gap-4">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex flex-col items-center">
+                    <PlayCircle className="w-7 h-7 mb-1 text-blue-500" />
+                    <span className="text-2xl font-extrabold tracking-tight">{totalBuilds}</span>
+                    <span className="text-xs text-gray-400 mt-1">Builds</span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>Nombre total de builds</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex flex-col items-center">
+                    <CheckCircle2 className="w-7 h-7 mb-1 text-green-500" />
+                    <span className="text-2xl font-extrabold tracking-tight">{avgSuccessRate}%</span>
+                    <span className="text-xs text-gray-400 mt-1">Succès</span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>Taux de succès moyen</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex flex-col items-center">
+                    <Clock className="w-7 h-7 mb-1 text-purple-500" />
+                    <span className="text-2xl font-extrabold tracking-tight">{formatDuration(avgDuration)}</span>
+                    <span className="text-xs text-gray-400 mt-1">Durée moy.</span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>Durée moyenne des builds</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex flex-col items-center">
+                    <AlertCircle className="w-7 h-7 mb-1 text-orange-500" />
+                    <span className="text-2xl font-extrabold tracking-tight">{lastBuild?.stages?.length ?? '–'}</span>
+                    <span className="text-xs text-gray-400 mt-1">Étapes</span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>Nombre d'étapes dans le dernier build</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
-          <div className="flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-            <AlertCircle className="w-6 h-6 mb-2 text-red-500" />
-            <div className="flex flex-col items-center">
+          {/* Mini-graphe personnalisable */}
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 flex flex-col gap-2 mt-4">
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="font-medium">Builds par jour (7 jours)</h4>
               <div className="flex items-center gap-2">
-                <Badge variant="outline" className="bg-green-100 text-green-800">
-                  {stats.builds.success} succès
-                </Badge>
-                <Badge variant="outline" className="bg-red-100 text-red-800">
-                  {stats.builds.failure} échecs
-                </Badge>
+                <span className="text-xs">Type de graphe</span>
+                <select
+                  className="w-[90px] h-7 text-xs bg-background border rounded"
+                  value={chartType}
+                  onChange={e => setChartType(e.target.value as 'line' | 'bar')}
+                >
+                  <option value="line">Ligne</option>
+                  <option value="bar">Barres</option>
+                </select>
               </div>
-              <span className="text-sm text-gray-500 mt-1">Statut</span>
             </div>
-          </div>
-        </div>
-
-        <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-          <h4 className="font-medium mb-2">Dernier build</h4>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Badge className={getStatusColor(stats.lastBuild.status)}>
-                {stats.lastBuild.status}
-              </Badge>
-              <span className="text-sm text-gray-500">
-                {stats.lastBuild.duration}s
-              </span>
-            </div>
-            <span className="text-sm text-gray-500">
-              {new Date(stats.lastBuild.timestamp).toLocaleString()}
-            </span>
-          </div>
-        </div>
-
-        {/* Graphique Jenkins */}
-        <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-          <h4 className="font-medium mb-2">Historique des builds (7 jours)</h4>
-          <div className="h-48">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={filteredHistory} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis allowDecimals={false} />
-                <Tooltip />
-                <Line type="monotone" dataKey="success" stroke="#22c55e" name="Succès" strokeWidth={2} />
-                <Line type="monotone" dataKey="failure" stroke="#ef4444" name="Échecs" strokeWidth={2} />
-              </LineChart>
+            <ResponsiveContainer width="100%" height={120}>
+              {chartType === 'line' ? (
+                <LineChart data={activity} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis allowDecimals={false} />
+                  <RechartsTooltip />
+                  <Line type="monotone" dataKey="builds" stroke="#22c55e" name="Builds" strokeWidth={2} />
+                </LineChart>
+              ) : (
+                <BarChart data={activity} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis allowDecimals={false} />
+                  <RechartsTooltip />
+                  <Bar dataKey="builds" fill="#22c55e" name="Builds" />
+                </BarChart>
+              )}
             </ResponsiveContainer>
           </div>
         </div>
-      </div>
-    </DashboardWidget>
+      </DashboardWidget>
+    </div>
   );
 } 

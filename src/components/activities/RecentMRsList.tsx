@@ -15,7 +15,7 @@ export function RecentMRsList({ mrs }: RecentMRsListProps) {
           {mr.title}
         </p>
         <p className="text-sm text-muted-foreground">
-          {mr.author} - {mr.assignee ? `Assigné à ${mr.assignee}` : "Non assigné"}
+          {mr.author}
         </p>
         <p className="text-xs text-muted-foreground">
           {new Date(mr.createdAt).toLocaleString()}
@@ -24,19 +24,17 @@ export function RecentMRsList({ mrs }: RecentMRsListProps) {
       <div className="flex items-center gap-2">
         <Badge
           variant={
-            mr.state === "merged"
-              ? "success"
-              : mr.state === "closed"
-              ? "error"
-              : mr.priority === "high"
-              ? "warning"
-              : "info"
+            mr.status === "merged"
+              ? "secondary"
+              : mr.status === "closed"
+              ? "destructive"
+              : "default"
           }
         >
-          {mr.state}
+          {mr.status}
         </Badge>
-        <Badge variant="secondary">
-          {mr.labels.join(", ")}
+        <Badge variant="outline">
+          {mr.reviewers.length} reviewers
         </Badge>
         <Badge variant="outline">
           {mr.comments} 💬

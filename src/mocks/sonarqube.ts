@@ -139,7 +139,15 @@ export const mockSonarData: SonarData[] = [
       reviewedHotspots: 1,
       lastUpdated: "2024-03-20T10:00:00Z"
     },
-    activity: []
+    activity: [
+      { date: "Lun", issues: 8 },
+      { date: "Mar", issues: 7 },
+      { date: "Mer", issues: 6 },
+      { date: "Jeu", issues: 9 },
+      { date: "Ven", issues: 5 },
+      { date: "Sam", issues: 4 },
+      { date: "Dim", issues: 3 }
+    ]
   },
   {
     id: 2,
@@ -193,6 +201,14 @@ export const mockSonarData: SonarData[] = [
       reviewedHotspots: 0,
       lastUpdated: "2024-03-22T11:00:00Z"
     },
-    activity: []
+    activity: [
+      { date: "Lun", issues: 5 },
+      { date: "Mar", issues: 6 },
+      { date: "Mer", issues: 4 },
+      { date: "Jeu", issues: 7 },
+      { date: "Ven", issues: 3 },
+      { date: "Sam", issues: 2 },
+      { date: "Dim", issues: 1 }
+    ]
   }
 ]; 

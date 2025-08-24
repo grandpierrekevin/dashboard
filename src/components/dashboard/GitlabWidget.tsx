@@ -1,3 +1,4 @@
+import { DashboardWidget } from './DashboardWidget';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useChartSettings } from "@/hooks/useChartSettings";
 import { ChartSettings as ChartSettingsComponent, ChartSettings } from "./ChartSettings";
@@ -181,27 +182,30 @@ export const GitlabWidget = memo(function GitlabWidget({ widgetId }: GitlabWidge
   const { data, loading, error } = useWidgetData({ type: 'gitlab' });
   const { settings, updateSetting } = useChartSettings('gitlab');
 
-
   if (error) {
     return (
-      <Alert variant="destructive">
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>
-          {error.message}
-        </AlertDescription>
-      </Alert>
+      <DashboardWidget id={widgetId} title="Statistiques GitLab" tool="GitLab">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            {error.message}
+          </AlertDescription>
+        </Alert>
+      </DashboardWidget>
     );
   }
 
   if (loading || !data || !Array.isArray(data)) {
     return (
-      <div className="animate-pulse space-y-4">
-        <div className="h-4 bg-muted rounded w-1/4" />
-        <div className="space-y-2">
-          <div className="h-4 bg-muted rounded" />
-          <div className="h-4 bg-muted rounded w-5/6" />
+      <DashboardWidget id={widgetId} title="Statistiques GitLab" tool="GitLab">
+        <div className="animate-pulse space-y-4 p-4">
+          <div className="h-4 bg-muted rounded w-1/4" />
+          <div className="space-y-2">
+            <div className="h-4 bg-muted rounded" />
+            <div className="h-4 bg-muted rounded w-5/6" />
+          </div>
         </div>
-      </div>
+      </DashboardWidget>
     );
   }
 
@@ -210,30 +214,20 @@ export const GitlabWidget = memo(function GitlabWidget({ widgetId }: GitlabWidge
     name: item.name,
     value: item.stars
   }));
-
   const totalStars = gitlabData.reduce((sum, item) => sum + (item.stars || 0), 0);
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">
-          GitLab Activity
-        </CardTitle>
-        <div className="flex items-center gap-2">
-          <Badge variant="outline">{totalStars} stars</Badge>
-          <ChartSettingsComponent 
-            settings={settings} 
-            onSettingsChange={updateSetting}
-            widgetName="GitLab Activity" 
-          />
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="h-[300px]">
-          <ChartComponent data={chartData} settings={settings} />
-        </div>
-        <WidgetDetails data={chartData} title="GitLab Activity" type="gitlab" />
-      </CardContent>
-    </Card>
+    <DashboardWidget
+      id={widgetId}
+      title="Statistiques GitLab"
+      tool="GitLab"
+      badge={<Badge variant="outline">{totalStars} stars</Badge>}
+      actions={<ChartSettingsComponent settings={settings} onSettingsChange={updateSetting} widgetName="GitLab Activity" />}
+    >
+      <div className="h-[300px]">
+        <ChartComponent data={chartData} settings={settings} />
+      </div>
+      <WidgetDetails data={chartData} title="GitLab Activity" type="gitlab" />
+    </DashboardWidget>
   );
 });

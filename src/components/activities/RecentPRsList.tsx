@@ -28,10 +28,10 @@ export function RecentPRsList({ prs = [] }: RecentPRsListProps) {
                   <Badge
                     variant={
                       pr.status === "open"
-                        ? "info"
+                        ? "default"
                         : pr.status === "merged"
-                        ? "success"
-                        : "error"
+                        ? "secondary"
+                        : "destructive"
                     }
                   >
                     {pr.status}

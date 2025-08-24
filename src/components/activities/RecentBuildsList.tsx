@@ -1,29 +1,30 @@
-import { JenkinsBuild } from "@/types/mocks";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
+import type { EnrichedBuild } from "@/types/jenkins";
 
 interface RecentBuildsListProps {
-  builds: JenkinsBuild[];
+  builds: EnrichedBuild[];
+  onViewDetails: (build: EnrichedBuild) => void;
 }
 
-export function RecentBuildsList({ builds }: RecentBuildsListProps) {
-  const handleRetry = (build: JenkinsBuild) => {
+export function RecentBuildsList({ builds, onViewDetails }: RecentBuildsListProps) {
+  const handleRetry = (build: EnrichedBuild) => {
     if (build.canRetry) {
       toast(`Build relancé\nBuild #${build.id} - ${build.name}`);
     }
   };
 
-  const handleViewConsole = (build: JenkinsBuild) => {
+  const handleViewConsole = (build: EnrichedBuild) => {
     if (build.consoleUrl) {
       toast(`Console ouverte\nBuild #${build.id} - ${build.name}`);
     }
   };
 
-  const getStatusColor = (status: JenkinsBuild["status"]) => {
+  const getStatusColor = (status: EnrichedBuild["status"]) => {
     switch (status) {
       case "success":
         return "bg-green-500";
@@ -77,15 +78,7 @@ export function RecentBuildsList({ builds }: RecentBuildsListProps) {
                 </div>
               </div>
               <div className="flex gap-2">
-                {build.canRetry && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleRetry(build)}
-                  >
-                    Relancer
-                  </Button>
-                )}
+                
                 {build.consoleUrl && (
                   <Button
                     variant="outline"
@@ -98,7 +91,7 @@ export function RecentBuildsList({ builds }: RecentBuildsListProps) {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handleViewConsole(build)}
+                  onClick={() => onViewDetails(build as EnrichedBuild)}
                 >
                   Voir détails
                 </Button>

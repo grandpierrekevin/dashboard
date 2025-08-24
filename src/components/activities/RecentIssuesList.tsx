@@ -22,24 +22,8 @@ export function RecentIssuesList({ issues }: RecentIssuesListProps) {
         </p>
       </div>
       <div className="flex items-center gap-2">
-        <Badge
-          variant={
-            issue.state === "closed"
-              ? "success"
-              : issue.priority === "high"
-              ? "error"
-              : issue.priority === "medium"
-              ? "warning"
-              : "info"
-          }
-        >
-          {issue.state}
-        </Badge>
         <Badge variant="secondary">
           {issue.labels.join(", ")}
-        </Badge>
-        <Badge variant="outline">
-          {issue.comments} 💬
         </Badge>
       </div>
     </div>

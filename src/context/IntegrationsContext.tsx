@@ -15,6 +15,7 @@ const defaultIntegrations: Integration[] = [
   { name: "Jenkins", active: true },
   { name: "Jira", active: true },
   { name: "SonarQube", active: true },
+  { name: "DevOps", active: true },
 ];
 
 export function IntegrationsProvider({ children }: { children: ReactNode }) {

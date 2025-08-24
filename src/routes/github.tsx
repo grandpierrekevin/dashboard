@@ -1,12 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Button } from "@/components/ui/button";
-import { Link } from "@tanstack/react-router";
-import { GithubWidget } from "@/components/dashboard/GithubWidget";
+import { GitHubGraph } from "@/components/dashboard/widgets/GitHubWidget";
 import { RecentCommitsList } from "@/components/activities/RecentCommitsList";
 import { RecentPRsList } from "@/components/activities/RecentPRsList";
 import { RecentIssuesList } from "@/components/activities/RecentIssuesList";
 import { CommitSearchBar } from "@/components/activities/CommitSearchBar";
-import { mockGithubData } from "@/mocks/github";
+import { mockGithubCommits, mockGithubPRs, mockGithubIssues } from "@/mocks/common";
 import { useState } from "react";
 
 export const Route = createFileRoute("/github")({
@@ -14,18 +12,21 @@ export const Route = createFileRoute("/github")({
 });
 
 export function GithubPage() {
-  const repo = mockGithubData[0]; // On utilise le premier repo pour l'exemple
-  const [filteredCommits, setFilteredCommits] = useState(repo.recentCommits);
+  // Agrégation des données mockées (simule l'API)
+  const allCommits = mockGithubCommits;
+  const allPRs = mockGithubPRs;
+  const allIssues = mockGithubIssues;
+  const [filteredCommits, setFilteredCommits] = useState(allCommits);
 
   return (
     <div className="container mx-auto p-6 space-y-6">
       <h1 className="text-3xl font-bold">GitHub</h1>
-      <GithubWidget />
-      <CommitSearchBar commits={repo.recentCommits} onFilter={setFilteredCommits} />
+      <GitHubGraph />
+      <CommitSearchBar commits={allCommits as any} onFilter={setFilteredCommits as any} />
       <div className="grid gap-6">
-        <RecentCommitsList commits={filteredCommits} />
-        <RecentPRsList prs={repo.recentPRs} />
-        <RecentIssuesList issues={repo.recentIssues} />
+        <RecentCommitsList commits={filteredCommits as any} />
+        <RecentPRsList prs={allPRs as any} />
+        <RecentIssuesList issues={allIssues as any} />
       </div>
     </div>
   );

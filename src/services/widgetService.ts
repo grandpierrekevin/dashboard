@@ -41,16 +41,94 @@ class WidgetService {
     // Pour l'instant, nous utilisons des données mockées
     // Dans une vraie application, ce serait un appel API
     switch (type) {
-      case 'github':
-        return mockGithubData as GithubRepoActivity[];
+      case 'github': {
+        // Agréger les données GitHub
+        const repos = mockGithubData;
+        const aggregatedData = repos.map(repo => ({
+          name: repo.repo,
+          value: repo.commits,
+          details: {
+            stars: repo.stars,
+            commits: repo.commits,
+            prs: repo.prs,
+            issues: repo.issues
+          },
+          activity: repo.activity.map(a => ({
+            date: a.date,
+            commits: a.commits,
+            prs: a.prs,
+            issues: a.issues
+          }))
+        }));
+        return aggregatedData;
+      }
       case 'gitlab':
         return mockGitlabData as GitlabPipeline[];
-      case 'jenkins':
-        return mockJenkinsData as JenkinsBuild[];
-      case 'jira':
-        return mockJiraData as JiraTicket[];
-      case 'sonarqube':
-        return mockSonarData as any[];
+      case 'jenkins': {
+        // Agréger les données Jenkins
+        const jobs = mockJenkinsData;
+        const aggregatedData = jobs.map(job => ({
+          name: job.name,
+          value: job.stats?.totalBuilds || 0,
+          details: {
+            totalBuilds: job.stats?.totalBuilds || 0,
+            successRate: job.stats?.successRate || 0,
+            averageDuration: job.stats?.averageDuration || 0,
+            lastBuild: job.lastBuild
+          },
+          activity: job.activity.map(a => ({
+            date: a.date,
+            builds: a.builds
+          }))
+        }));
+        return aggregatedData;
+      }
+      case 'jira': {
+        // Agréger les données Jira
+        const projects = mockJiraData;
+        const aggregatedData = projects.map(project => ({
+          name: project.name,
+          value: project.stats.totalIssues,
+          details: {
+            open: project.stats.openIssues,
+            inProgress: project.stats.inProgressIssues,
+            done: project.stats.doneIssues,
+            velocity: project.stats.velocity
+          },
+          activity: project.activity.map(a => ({
+            date: a.date,
+            value: a.tickets
+          }))
+        }));
+        return aggregatedData;
+      }
+      case 'sonarqube': {
+        // Agréger les données SonarQube
+        const projects = mockSonarData;
+        const aggregatedData = projects.map(project => ({
+          name: project.name,
+          value: project.stats.totalIssues,
+          details: {
+            totalIssues: project.stats.totalIssues,
+            openIssues: project.stats.openIssues,
+            resolvedIssues: project.stats.resolvedIssues,
+            totalHotspots: project.stats.totalHotspots,
+            toReviewHotspots: project.stats.toReviewHotspots,
+            reviewedHotspots: project.stats.reviewedHotspots,
+            coverage: project.metrics.coverage,
+            bugs: project.metrics.bugs,
+            vulnerabilities: project.metrics.vulnerabilities,
+            codeSmells: project.metrics.codeSmells
+          },
+          qualityGate: project.qualityGate,
+          lastAnalysis: project.lastAnalysis,
+          activity: project.activity.map(a => ({
+            date: a.date,
+            value: a.issues
+          }))
+        }));
+        return aggregatedData;
+      }
       default:
         throw new Error(`Type de widget non supporté: ${type}`);
     }

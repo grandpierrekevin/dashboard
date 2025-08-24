@@ -1,5 +1,35 @@
-node_modules
+# node
+node_modules/
+.pnpm/
+dist/
+build/
+.tmp/
+tmp/
+packege-lock.json
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# env
+.env
+.env.*
+
+# IDE
+.vscode/
+.idea/
+
+# OS
 .DS_Store
-dist
-dist-ssr
+Thumbs.db
+
+# test coverage
+coverage/
+
+# vite
 *.local
+
+# misc
+*.log

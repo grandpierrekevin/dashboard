@@ -1,23 +1,19 @@
 import React from 'react';
 import { useWidgetData } from '@/hooks/useWidgetData';
 import { LineChart, Line, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, CartesianGrid, BarChart, Bar } from 'recharts';
-import { GithubRepoActivity } from '@/types/mocks';
 
-function isGithubRepoActivity(data: any): data is GithubRepoActivity {
-  return 'repo' in data && 'commits' in data && 'prs' in data && 'issues' in data;
-}
-
-export function GitHubGraph() {
-  const { data, loading, error } = useWidgetData({ type: 'github' });
+export function JiraGraph() {
+  const { data, loading, error } = useWidgetData({ type: 'jira' });
   const [chartType, setChartType] = React.useState<'line' | 'bar'>('line');
 
-  const repos = Array.isArray(data) ? data.filter(isGithubRepoActivity) : [];
+  const projects = Array.isArray(data) ? data : [];
   const days = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
   const activity = days.map(day => ({
     date: day,
-    commits: repos.reduce((sum, repo) => sum + repo.commits, 0),
-    prs: repos.reduce((sum, repo) => sum + repo.prs, 0),
-    issues: repos.reduce((sum, repo) => sum + repo.issues, 0)
+    tickets: projects.reduce((sum, project) => {
+      const found = project.activity?.find(a => a.date === day);
+      return sum + (found?.value || 0);
+    }, 0)
   }));
 
   if (loading) return <div className="h-64 animate-pulse bg-muted rounded" />;
@@ -26,7 +22,7 @@ export function GitHubGraph() {
   return (
     <div className="w-full bg-[#181C23] rounded-xl p-6 shadow-lg mb-8">
       <div className="flex items-center justify-between mb-2">
-        <h2 className="text-2xl font-bold">Activité GitHub sur 7 jours</h2>
+        <h2 className="text-2xl font-bold">Activité Jira sur 7 jours</h2>
         <select
           className="w-[90px] h-7 text-xs bg-gray-600 border rounded"
           value={chartType}
@@ -39,28 +35,24 @@ export function GitHubGraph() {
       <div className="h-64 w-full">
         <ResponsiveContainer width="100%" height="100%">
           {chartType === 'line' ? (
-            <LineChart data={activity} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+            <LineChart data={activity}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="date" />
               <YAxis allowDecimals={false} />
               <RechartsTooltip />
-              <Line type="monotone" dataKey="commits" stroke="#22c55e" name="Commits" strokeWidth={2} />
-              <Line type="monotone" dataKey="prs" stroke="#a855f7" name="PRs" strokeWidth={2} />
-              <Line type="monotone" dataKey="issues" stroke="#f97316" name="Issues" strokeWidth={2} />
+              <Line type="monotone" dataKey="tickets" stroke="#22c55e" name="Tickets" strokeWidth={2} />
             </LineChart>
           ) : (
-            <BarChart data={activity} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+            <BarChart data={activity}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="date" />
               <YAxis allowDecimals={false} />
               <RechartsTooltip />
-              <Bar dataKey="commits" fill="#22c55e" name="Commits" />
-              <Bar dataKey="prs" fill="#a855f7" name="PRs" />
-              <Bar dataKey="issues" fill="#f97316" name="Issues" />
+              <Bar dataKey="tickets" fill="#22c55e" name="Tickets" />
             </BarChart>
           )}
         </ResponsiveContainer>
       </div>
     </div>
   );
-}
+} 

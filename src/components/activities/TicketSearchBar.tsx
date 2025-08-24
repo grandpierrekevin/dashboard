@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from "react";
+import  { useEffect, useCallback } from "react";
 import { JiraTicket } from "@/types/mocks";
 import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectContent, SelectItem } from "@/components/ui/select";
@@ -74,9 +74,9 @@ export function TicketSearchBar({ tickets, onFilter }: TicketSearchBarProps) {
   }, [handleFilter]);
 
   return (
-    <div className="flex flex-wrap gap-4 items-end mb-4">
+    <div className="flex flex-wrap gap-4 items-end mb-4 bg-gray-900 rounded-xl p-7 shadow">
       <div>
-        <Label htmlFor="search">Recherche</Label>
+        <Label htmlFor="search" className="mb-2">Recherche</Label>
         <Input
           id="search"
           placeholder="Titre ou numéro du ticket..."
@@ -85,7 +85,7 @@ export function TicketSearchBar({ tickets, onFilter }: TicketSearchBarProps) {
         />
       </div>
       <div>
-        <Label htmlFor="assignee">Assigné à</Label>
+        <Label htmlFor="assignee" className="mb-2">Assigné à</Label>
         <Select value={assignee} onValueChange={setAssignee}>
           <SelectTrigger className="w-[180px]">{assignee || "Tous"}</SelectTrigger>
           <SelectContent>
@@ -96,7 +96,7 @@ export function TicketSearchBar({ tickets, onFilter }: TicketSearchBarProps) {
         </Select>
       </div>
       <div>
-        <Label htmlFor="status">Statut</Label>
+        <Label htmlFor="status" className="mb-2">Statut</Label>
         <Select value={status} onValueChange={setStatus}>
           <SelectTrigger className="w-[180px]">{status || "Tous"}</SelectTrigger>
           <SelectContent>
@@ -107,7 +107,7 @@ export function TicketSearchBar({ tickets, onFilter }: TicketSearchBarProps) {
         </Select>
       </div>
       <div>
-        <Label htmlFor="priority">Priorité</Label>
+        <Label htmlFor="priority" className="mb-2">Priorité</Label>
         <Select value={priority} onValueChange={setPriority}>
           <SelectTrigger className="w-[180px]">{priority || "Toutes"}</SelectTrigger>
           <SelectContent>
@@ -118,7 +118,7 @@ export function TicketSearchBar({ tickets, onFilter }: TicketSearchBarProps) {
         </Select>
       </div>
       <div>
-        <Label htmlFor="type">Type</Label>
+        <Label htmlFor="type" className="mb-2">Type</Label>
         <Select value={type} onValueChange={setType}>
           <SelectTrigger className="w-[180px]">{type || "Tous"}</SelectTrigger>
           <SelectContent>

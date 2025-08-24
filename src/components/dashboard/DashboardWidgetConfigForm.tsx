@@ -1,3 +1,5 @@
+"use client"
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 
@@ -18,12 +20,6 @@ export function DashboardWidgetConfigForm({ initialConfig, availableMetrics, onS
   const [title, setTitle] = React.useState(initialConfig.title);
   const [period, setPeriod] = React.useState(initialConfig.period);
   const [metrics, setMetrics] = React.useState<string[]>(initialConfig.metrics);
-
-  const handleMetricChange = (key: string) => {
-    setMetrics((prev) =>
-      prev.includes(key) ? prev.filter((m) => m !== key) : [...prev, key]
-    );
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,7 +56,11 @@ export function DashboardWidgetConfigForm({ initialConfig, availableMetrics, onS
               <input
                 type="checkbox"
                 checked={metrics.includes(metric.key)}
-                onChange={() => handleMetricChange(metric.key)}
+                onChange={() => {
+                  setMetrics((prev) =>
+                    prev.includes(metric.key) ? prev.filter((m) => m !== metric.key) : [...prev, metric.key]
+                  );
+                }}
               />
               {metric.label}
             </label>

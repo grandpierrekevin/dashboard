@@ -31,10 +31,10 @@ export function RecentCommitsList({ commits = [] }: RecentCommitsListProps) {
                   <Badge
                     variant={
                       commit.status === "success"
-                        ? "success"
+                        ? "secondary"
                         : commit.status === "failed"
-                        ? "error"
-                        : "warning"
+                        ? "destructive"
+                        : "outline"
                     }
                   >
                     {commit.status}

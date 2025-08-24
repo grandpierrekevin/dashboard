@@ -8,188 +8,80 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-// Import Routes
+import { Route as rootRouteImport } from './routes/__root'
+import { Route as SonarqubeRouteImport } from './routes/sonarqube'
+import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as JiraRouteImport } from './routes/jira'
+import { Route as JenkinsRouteImport } from './routes/jenkins'
+import { Route as GitlabRouteImport } from './routes/gitlab'
+import { Route as GithubRouteImport } from './routes/github'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as AboutRouteImport } from './routes/about'
+import { Route as R404RouteImport } from './routes/404'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminIntegrationsRouteImport } from './routes/admin/integrations'
+import { Route as AdminCorrelationRouteImport } from './routes/admin/correlation'
 
-import { Route as rootRoute } from './routes/__root'
-import { Route as SonarqubeImport } from './routes/sonarqube'
-import { Route as ProfileImport } from './routes/profile'
-import { Route as JiraImport } from './routes/jira'
-import { Route as JenkinsImport } from './routes/jenkins'
-import { Route as GitlabImport } from './routes/gitlab'
-import { Route as GithubImport } from './routes/github'
-import { Route as DashboardImport } from './routes/dashboard'
-import { Route as AboutImport } from './routes/about'
-import { Route as R404Import } from './routes/404'
-import { Route as IndexImport } from './routes/index'
-import { Route as AdminIntegrationsImport } from './routes/admin/integrations'
-import { Route as AdminCorrelationImport } from './routes/admin/correlation'
-
-// Create/Update Routes
-
-const SonarqubeRoute = SonarqubeImport.update({
+const SonarqubeRoute = SonarqubeRouteImport.update({
   id: '/sonarqube',
   path: '/sonarqube',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const ProfileRoute = ProfileImport.update({
+const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const JiraRoute = JiraImport.update({
+const JiraRoute = JiraRouteImport.update({
   id: '/jira',
   path: '/jira',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const JenkinsRoute = JenkinsImport.update({
+const JenkinsRoute = JenkinsRouteImport.update({
   id: '/jenkins',
   path: '/jenkins',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const GitlabRoute = GitlabImport.update({
+const GitlabRoute = GitlabRouteImport.update({
   id: '/gitlab',
   path: '/gitlab',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const GithubRoute = GithubImport.update({
+const GithubRoute = GithubRouteImport.update({
   id: '/github',
   path: '/github',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const DashboardRoute = DashboardImport.update({
+const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const AboutRoute = AboutImport.update({
+const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const R404Route = R404Import.update({
+const R404Route = R404RouteImport.update({
   id: '/404',
   path: '/404',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const IndexRoute = IndexImport.update({
+const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const AdminIntegrationsRoute = AdminIntegrationsImport.update({
+const AdminIntegrationsRoute = AdminIntegrationsRouteImport.update({
   id: '/admin/integrations',
   path: '/admin/integrations',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const AdminCorrelationRoute = AdminCorrelationImport.update({
+const AdminCorrelationRoute = AdminCorrelationRouteImport.update({
   id: '/admin/correlation',
   path: '/admin/correlation',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-// Populate the FileRoutesByPath interface
-
-declare module '@tanstack/react-router' {
-  interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexImport
-      parentRoute: typeof rootRoute
-    }
-    '/404': {
-      id: '/404'
-      path: '/404'
-      fullPath: '/404'
-      preLoaderRoute: typeof R404Import
-      parentRoute: typeof rootRoute
-    }
-    '/about': {
-      id: '/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof AboutImport
-      parentRoute: typeof rootRoute
-    }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardImport
-      parentRoute: typeof rootRoute
-    }
-    '/github': {
-      id: '/github'
-      path: '/github'
-      fullPath: '/github'
-      preLoaderRoute: typeof GithubImport
-      parentRoute: typeof rootRoute
-    }
-    '/gitlab': {
-      id: '/gitlab'
-      path: '/gitlab'
-      fullPath: '/gitlab'
-      preLoaderRoute: typeof GitlabImport
-      parentRoute: typeof rootRoute
-    }
-    '/jenkins': {
-      id: '/jenkins'
-      path: '/jenkins'
-      fullPath: '/jenkins'
-      preLoaderRoute: typeof JenkinsImport
-      parentRoute: typeof rootRoute
-    }
-    '/jira': {
-      id: '/jira'
-      path: '/jira'
-      fullPath: '/jira'
-      preLoaderRoute: typeof JiraImport
-      parentRoute: typeof rootRoute
-    }
-    '/profile': {
-      id: '/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof ProfileImport
-      parentRoute: typeof rootRoute
-    }
-    '/sonarqube': {
-      id: '/sonarqube'
-      path: '/sonarqube'
-      fullPath: '/sonarqube'
-      preLoaderRoute: typeof SonarqubeImport
-      parentRoute: typeof rootRoute
-    }
-    '/admin/correlation': {
-      id: '/admin/correlation'
-      path: '/admin/correlation'
-      fullPath: '/admin/correlation'
-      preLoaderRoute: typeof AdminCorrelationImport
-      parentRoute: typeof rootRoute
-    }
-    '/admin/integrations': {
-      id: '/admin/integrations'
-      path: '/admin/integrations'
-      fullPath: '/admin/integrations'
-      preLoaderRoute: typeof AdminIntegrationsImport
-      parentRoute: typeof rootRoute
-    }
-  }
-}
-
-// Create and export the route tree
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -205,7 +97,6 @@ export interface FileRoutesByFullPath {
   '/admin/correlation': typeof AdminCorrelationRoute
   '/admin/integrations': typeof AdminIntegrationsRoute
 }
-
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/404': typeof R404Route
@@ -220,9 +111,8 @@ export interface FileRoutesByTo {
   '/admin/correlation': typeof AdminCorrelationRoute
   '/admin/integrations': typeof AdminIntegrationsRoute
 }
-
 export interface FileRoutesById {
-  __root__: typeof rootRoute
+  __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/404': typeof R404Route
   '/about': typeof AboutRoute
@@ -236,7 +126,6 @@ export interface FileRoutesById {
   '/admin/correlation': typeof AdminCorrelationRoute
   '/admin/integrations': typeof AdminIntegrationsRoute
 }
-
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
@@ -282,7 +171,6 @@ export interface FileRouteTypes {
     | '/admin/integrations'
   fileRoutesById: FileRoutesById
 }
-
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   R404Route: typeof R404Route
@@ -296,6 +184,95 @@ export interface RootRouteChildren {
   SonarqubeRoute: typeof SonarqubeRoute
   AdminCorrelationRoute: typeof AdminCorrelationRoute
   AdminIntegrationsRoute: typeof AdminIntegrationsRoute
+}
+
+declare module '@tanstack/react-router' {
+  interface FileRoutesByPath {
+    '/sonarqube': {
+      id: '/sonarqube'
+      path: '/sonarqube'
+      fullPath: '/sonarqube'
+      preLoaderRoute: typeof SonarqubeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/jira': {
+      id: '/jira'
+      path: '/jira'
+      fullPath: '/jira'
+      preLoaderRoute: typeof JiraRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/jenkins': {
+      id: '/jenkins'
+      path: '/jenkins'
+      fullPath: '/jenkins'
+      preLoaderRoute: typeof JenkinsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/gitlab': {
+      id: '/gitlab'
+      path: '/gitlab'
+      fullPath: '/gitlab'
+      preLoaderRoute: typeof GitlabRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/github': {
+      id: '/github'
+      path: '/github'
+      fullPath: '/github'
+      preLoaderRoute: typeof GithubRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/404': {
+      id: '/404'
+      path: '/404'
+      fullPath: '/404'
+      preLoaderRoute: typeof R404RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/integrations': {
+      id: '/admin/integrations'
+      path: '/admin/integrations'
+      fullPath: '/admin/integrations'
+      preLoaderRoute: typeof AdminIntegrationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/correlation': {
+      id: '/admin/correlation'
+      path: '/admin/correlation'
+      fullPath: '/admin/correlation'
+      preLoaderRoute: typeof AdminCorrelationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+  }
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -312,67 +289,6 @@ const rootRouteChildren: RootRouteChildren = {
   AdminCorrelationRoute: AdminCorrelationRoute,
   AdminIntegrationsRoute: AdminIntegrationsRoute,
 }
-
-export const routeTree = rootRoute
+export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-/* ROUTE_MANIFEST_START
-{
-  "routes": {
-    "__root__": {
-      "filePath": "__root.tsx",
-      "children": [
-        "/",
-        "/404",
-        "/about",
-        "/dashboard",
-        "/github",
-        "/gitlab",
-        "/jenkins",
-        "/jira",
-        "/profile",
-        "/sonarqube",
-        "/admin/correlation",
-        "/admin/integrations"
-      ]
-    },
-    "/": {
-      "filePath": "index.tsx"
-    },
-    "/404": {
-      "filePath": "404.tsx"
-    },
-    "/about": {
-      "filePath": "about.tsx"
-    },
-    "/dashboard": {
-      "filePath": "dashboard.tsx"
-    },
-    "/github": {
-      "filePath": "github.tsx"
-    },
-    "/gitlab": {
-      "filePath": "gitlab.tsx"
-    },
-    "/jenkins": {
-      "filePath": "jenkins.tsx"
-    },
-    "/jira": {
-      "filePath": "jira.tsx"
-    },
-    "/profile": {
-      "filePath": "profile.tsx"
-    },
-    "/sonarqube": {
-      "filePath": "sonarqube.tsx"
-    },
-    "/admin/correlation": {
-      "filePath": "admin/correlation.tsx"
-    },
-    "/admin/integrations": {
-      "filePath": "admin/integrations.tsx"
-    }
-  }
-}
-ROUTE_MANIFEST_END */

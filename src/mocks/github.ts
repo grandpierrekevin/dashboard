@@ -16,7 +16,16 @@ export const mockGithubData = [
     stars: 120,
     commits: 50,
     prs: 10,
-    issues: 5
+    issues: 5,
+    activity: [
+      { date: "Lun", commits: 8, prs: 2, issues: 1 },
+      { date: "Mar", commits: 12, prs: 3, issues: 2 },
+      { date: "Mer", commits: 6, prs: 1, issues: 0 },
+      { date: "Jeu", commits: 10, prs: 2, issues: 1 },
+      { date: "Ven", commits: 7, prs: 1, issues: 1 },
+      { date: "Sam", commits: 4, prs: 0, issues: 0 },
+      { date: "Dim", commits: 3, prs: 1, issues: 0 }
+    ]
   },
   {
     id: "repo-2",
@@ -24,7 +33,16 @@ export const mockGithubData = [
     stars: 80,
     commits: 30,
     prs: 5,
-    issues: 2
+    issues: 2,
+    activity: [
+      { date: "Lun", commits: 5, prs: 1, issues: 0 },
+      { date: "Mar", commits: 7, prs: 2, issues: 1 },
+      { date: "Mer", commits: 4, prs: 0, issues: 0 },
+      { date: "Jeu", commits: 6, prs: 1, issues: 1 },
+      { date: "Ven", commits: 3, prs: 0, issues: 0 },
+      { date: "Sam", commits: 2, prs: 1, issues: 0 },
+      { date: "Dim", commits: 3, prs: 0, issues: 0 }
+    ]
   }
 ];
 

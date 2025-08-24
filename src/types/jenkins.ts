@@ -68,4 +68,13 @@ export interface JobStats {
   successRate: number;
   averageDuration: number;
   lastUpdated: string;
+}
+
+export interface EnrichedBuild extends BuildSummary {
+  job: string;
+  branch: string;
+  name: string;
+  date: string;
+  canRetry?: boolean;
+  consoleUrl?: string;
 } 

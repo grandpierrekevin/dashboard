@@ -34,19 +34,26 @@ export function RecentPipelinesList({ pipelines = [] }: RecentPipelinesListProps
 
   useEffect(() => {
     const interval = setInterval(() => {
-      const statuses = ["success", "failed", "running"];
+      const statuses: Pipeline['status'][] = ["success", "failed", "running", "pending"];
       const authors = uniqueAuthors.length ? uniqueAuthors : ["Alice Smith", "Bob Johnson", "Charlie Brown", "Diana Prince"];
       const id = Math.floor(Math.random() * 1000) + Date.now();
-      const newPipeline = {
+      const newPipeline: Pipeline = {
         id,
-        name: `Pipeline #${id}`,
         status: statuses[Math.floor(Math.random() * statuses.length)],
         duration: Math.floor(Math.random() * 200) + 60,
-        date: new Date().toISOString(),
-        branch: ["main", "develop", "feature/auth", "hotfix/security"][Math.floor(Math.random() * 4)],
+        startedAt: new Date().toISOString(),
+        finishedAt: new Date(Date.now() + (Math.floor(Math.random() * 200) + 60) * 1000).toISOString(),
+        branch: ["main", "develop", "feature/auth", "hotfix/security"][Math.floor(Math.random() * statuses.length)],
         author: authors[Math.floor(Math.random() * authors.length)],
-        commit: Math.random().toString(36).substring(2, 9),
         stages: [{ name: "build", status: "success", duration: 60 }],
+        details: {
+          commit: {
+            id: Math.random().toString(36).substring(2, 9),
+            message: "Update pipeline",
+            author: authors[Math.floor(Math.random() * authors.length)]
+          },
+          artifacts: []
+        }
       };
       setLivePipelines(list => [newPipeline, ...list]);
       setNewPipelineId(id);
@@ -100,7 +107,7 @@ export function RecentPipelinesList({ pipelines = [] }: RecentPipelinesListProps
           <div className="w-48">
             <Label htmlFor="status">Statut</Label>
             <Select onValueChange={handleStatusChange}>
-              <SelectTrigger id="status" placeholder="Tous" />
+              <SelectTrigger id="status">Tous</SelectTrigger>
               <SelectContent>
                 <SelectItem value="success">Succès</SelectItem>
                 <SelectItem value="failed">Échec</SelectItem>
@@ -111,7 +118,7 @@ export function RecentPipelinesList({ pipelines = [] }: RecentPipelinesListProps
           <div className="w-48">
             <Label htmlFor="author">Auteur</Label>
             <Select onValueChange={handleAuthorChange}>
-              <SelectTrigger id="author" placeholder="Tous" />
+              <SelectTrigger id="author">Tous</SelectTrigger>
               <SelectContent>
                 {uniqueAuthors.map((author) => (
                   <SelectItem key={author} value={author}>

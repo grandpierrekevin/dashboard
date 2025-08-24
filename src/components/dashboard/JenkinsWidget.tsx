@@ -6,7 +6,7 @@ import {
   BarChart, Bar, AreaChart, Area, PieChart, Pie, Cell, RadarChart, Radar, PolarGrid, 
   PolarAngleAxis, PolarRadiusAxis, ScatterChart, Scatter 
 } from "recharts";
-import { Info, AlertCircle } from "lucide-react";
+import { Info, AlertCircle, Sun, CloudSun, Cloud, CloudRain, CloudLightning } from "lucide-react";
 import { Tooltip as UiTooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { WidgetDetails } from "./WidgetDetails";
 import { Button } from "@/components/ui/button";
@@ -16,28 +16,6 @@ import { memo } from "react";
 import { useWidgetData } from "@/hooks/useWidgetData";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { JenkinsBuild } from "@/types/mocks";
-
-// Simule des jobs Jenkins (en démo)
-const demoJobs = [
-  { name: "build-app", ok: 13, ko: 2 },
-  { name: "deploy-prod", ok: 8, ko: 1 },
-  { name: "e2e-tests", ok: 6, ko: 5 },
-  { name: "lint-check", ok: 10, ko: 0 },
-];
-
-// Fonction pour choisir la météo selon % de réussite
-function getWeather(successRate: number) {
-  if (successRate >= 0.95) return { icon: <Sun className="text-yellow-400" />, label: "Parfait" };
-  if (successRate >= 0.85) return { icon: <CloudSun className="text-yellow-300" />, label: "Bon" };
-  if (successRate >= 0.70) return { icon: <Cloud className="text-gray-400" />, label: "Instable" };
-  if (successRate >= 0.50) return { icon: <CloudRain className="text-blue-400" />, label: "À surveiller" };
-  return { icon: <CloudLightning className="text-red-500" />, label: "Échec" };
-}
-
-interface JenkinsWidgetProps {
-  widgetId: string;
-}
 
 const ChartComponent = memo(({ data, settings }: { data: ChartData[], settings: ChartSettings }) => {
   if (!data?.length) return null;
@@ -136,11 +114,8 @@ const ChartComponent = memo(({ data, settings }: { data: ChartData[], settings: 
               label
               animationDuration={settings.animation ? 1000 : 0}
             >
-              {data.map((entry, index) => (
-                <Cell
-                  key={`cell-${index}`}
-                  fill={colorMap[Object.keys(colorMap)[index % Object.keys(colorMap).length] as ColorKey]}
-                />
+              {data.map((_, index) => (
+                <Cell key={`cell-${index}`} fill={colorMap[Object.keys(colorMap)[index % Object.keys(colorMap).length] as ColorKey]} />
               ))}
             </Pie>
             {settings.showTooltip && <Tooltip />}
@@ -194,7 +169,7 @@ const ChartComponent = memo(({ data, settings }: { data: ChartData[], settings: 
   }
 });
 
-export const JenkinsWidget = memo(function JenkinsWidget({ widgetId }: JenkinsWidgetProps) {
+export const JenkinsWidget = memo(function JenkinsWidget() {
   const { data, loading, error } = useWidgetData({ type: 'jenkins' });
   const { settings, updateSetting } = useChartSettings('jenkins');
 
@@ -221,13 +196,7 @@ export const JenkinsWidget = memo(function JenkinsWidget({ widgetId }: JenkinsWi
     );
   }
 
-  const jenkinsData = Array.isArray(data) ? data : [];
-  const chartData: ChartData[] = jenkinsData.map(item => ({
-    name: item.name,
-    value: item.stars || 0 // Utilisation de stars si présent
-  }));
-
-  const totalStars = jenkinsData.reduce((sum, item) => sum + (item.stars || 0), 0);
+  const chartData: ChartData[] = Array.isArray(data) ? (data as ChartData[]) : [];
 
   return (
     <Card>
@@ -236,7 +205,6 @@ export const JenkinsWidget = memo(function JenkinsWidget({ widgetId }: JenkinsWi
           Jenkins Activity
         </CardTitle>
         <div className="flex items-center gap-2">
-          <Badge variant="outline">{totalStars} stars</Badge>
           <ChartSettingsComponent 
             settings={settings} 
             onSettingsChange={updateSetting}
